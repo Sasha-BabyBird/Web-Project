@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hello Bulma!</title>
-    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+    <title>Архив погоды</title>
+    <script defer src="https://use.fontawesome.com/releases/v5.6.1/js/all.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.5.21/dist/vue.js"></script>
     <!--
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
     -->
-    <link rel="stylesheet" href="./buefy.min.css"></script>
+    <link rel="stylesheet" href="./buefy.min.css">
+    </script>
     <script src="./axios.min.js"></script>
     <script src="./buefy.min.js"></script>
     <!--
@@ -17,16 +19,519 @@
   integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
   crossorigin="anonymous"></script>
     -->
-  </head>
-  <body>
-        <div id="app">
-                
+</head>
+
+<body>
+    <div id="app">
+        <section v-if="showContent">
+            <div class="columns is-centered">
+                <div class="column has-background-grey-light">
+                    <br><br><br><br><br>
+                </div>
             </div>
-  </body>
-  
-  <script>
-  var vm = new Vue({
-    el: '#app',
-    
+
+            <div class="columns is-centered">
+                    <div class="column">
+                        <br>
+                        <p class="has-text-centered is-size-4">
+                            Таблица погоды в Санкт-Петербурге за <strong>{{ selected_month_after_click.toLowerCase() }} {{
+                                selected_year_after_click}} </strong> года.
+                        </p>
+                        <br>
+                    </div>
+                </div>
+            
+
+            
+
+            <nav class="level">
+                <div class="level-item has-text-centered">
+                    <div>
+                        <p class="heading">Самый тёплый {{ selected_month_after_click.toLowerCase() }}</p>
+                        <p class="title has-text-danger">{{ extrema.most_warm + '°' }}<br></p>
+                        <p class="is-size-4">{{ extrema.most_warm_year + ' г.'}}</p>
+                    </div>
+                </div>
+                <div class="level-item has-text-centered">
+                    <div>
+                        <p class="heading">Самый холодный {{ selected_month_after_click.toLowerCase() }}</p>
+                        <p class="title has-text-link">{{ extrema.most_cold + '°' }}<br></p>
+                        <p class="is-size-4">{{ extrema.most_cold_year + ' г.' }}</p>
+
+                    </div>
+                </div>
+                <div class="level-item has-text-centered">
+                    <div>
+                        <p class="heading">Самый влажный {{ selected_month_after_click.toLowerCase() }}</p>
+                        <p class="title has-text-info">{{ extrema.most_wet + ' мм' }}<br></p>
+                        <p class="is-size-4">{{ extrema.most_wet_year + ' г.' }}</p>
+                    </div>
+                </div>
+                <div class="level-item has-text-centered">
+                    <div>
+                        <p class="heading">Самый сухой {{ selected_month_after_click.toLowerCase() }}</p>
+                        <p class="title has-text-warning">{{ extrema.most_dry + ' мм' }}<br></p>
+                        <p class="is-size-4">{{ extrema.most_dry_year + ' г.' }}</p>
+                    </div>
+                </div>
+            </nav>
+
+
+            <div class="columns is-centered">
+                <div class="column">
+                    <nav v-if="not_latest && not_absent" class="level">
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">НОРМА ТЕМПЕРАТУРЫ</p>
+                                <p class="title">{{ normal_avg.toFixed(1) + '°' }}</p>
+                            </div>
+                        </div>
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">ФАКТИЧЕСКАЯ ТЕМПЕРАТУРА</p>
+                                <p class="title">{{ avg.toFixed(1) + '°' }}</p>
+                            </div>
+                        </div>
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">ОТКЛОНЕНИЕ ОТ НОРМЫ</p>
+                                <p class="title has-text-warning">{{ (avg - normal_avg).toFixed(1) + '°' }}</p>
+                            </div>
+                        </div>
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">НОРМА ОСАДКОВ</p>
+                                <p class="title">{{ normal_precip + ' мм' }}</p>
+                            </div>
+                        </div>
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">ВЫПАЛО ОСАДКОВ</p>
+                                <p class="title">{{ precip.toFixed(1) + ' мм' }}</p>
+                            </div>
+                        </div>
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">ПРОЦЕНТ ОСАДКОВ ОТ НОРМЫ</p>
+                                <p class="title has-text-warning">{{ ((precip/normal_precip) * 100).toFixed(0) + '%' }}</p>
+                            </div>
+                        </div>
+                    </nav>
+                    <nav v-else-if="not_latest && !not_absent" class="level">
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">НОРМА ТЕМПЕРАТУРЫ</p>
+                                <p class="title">{{ normal_avg.toFixed(1) + '°' }}</p>
+                            </div>
+                        </div>
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">НОРМА ОСАДКОВ</p>
+                                <p class="title">{{ normal_precip + ' мм' }}</p>
+                            </div>
+                        </div>
+                    </nav>
+                    <nav v-else class="level">
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">ФАКТИЧЕСКАЯ ТЕМПЕРАТУРА НА ДАННЫЙ МОМЕНТ</p>
+                                <p class="title">{{ avg.toFixed(1) + '°' }}</p>
+                            </div>
+                        </div>
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">ВЫПАЛО ОСАДКОВ НА ДАННЫЙ МОМЕНТ</p>
+                                <p class="title">{{ precip.toFixed(1) + ' мм' }}</p>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+            
+            <div  v-if="!not_absent" class="columns is-centered">
+                    <div class="column">
+                        <br>
+                        <p class="has-text-centered is-size-4 has-text-danger">
+                            К сожалению, в базе данных не удалось найти
+                            данные за этот месяц...
+                        </p>
+                        <br>
+                    </div>
+                </div>       
+
+            <div class="columns is-centered is-mobile">
+                <div class="column is-4">
+                </div>
+                <div class="column is-4">
+                    <template>
+                        <b-table class="table is-striped is-bordered is-narrow" :data="data" :paginated="false"
+                            :per-page="5">
+                            <template slot-scope="props">
+                                <b-table-column field="date" label="Дата">
+                                    <span class="is-size-6">
+                                        <strong> {{ props.row.date }} </strong>
+                                </b-table-column>
+
+                                <b-table-column field="min" label="Минимум">
+                                    <span class="is-size-5 has-text-link">
+                                        {{ props.row.min }}
+                                    </span>
+                                </b-table-column>
+
+                                <b-table-column field="avg" label="Средняя">
+                                    <span class="is-size-5 has-text-grey-dark">
+                                        {{ props.row.avg }}
+                                    </span>
+                                </b-table-column>
+                                <b-table-column field="max" label="Максимум">
+                                    <span class="is-size-5 has-text-danger">
+                                        {{ props.row.max }}
+                                    </span>
+                                </b-table-column>
+                                <b-table-column field="delta" label="Откл." :visible="deltas_visible">
+                                    <span class="is-size-5" :class="props.row.delta === undefined ? 
+                                      'has-text-dark' : (Math.abs(parseFloat(props.row.delta)) > 1  ? 
+                                      (parseFloat(props.row.delta) > 0 ? 'has-text-danger' : 'has-text-link')
+                                      : 'has-text-success')">
+                                        {{ props.row.delta }}
+                                    </span>
+                                </b-table-column>
+                                <b-table-column field="precip" label="Осадки, мм">
+                                    <span class="is-size-5" :class="((parseFloat(props.row.avg)  < 1.0) && (props.row.precip !== '0.0')) ? 'has-text-info' 
+                                   : (props.row.precip !== '0.0' ? 'has-text-grey' : 'has-text-dark')">
+                                        {{ props.row.precip }}
+                                    </span>
+                                </b-table-column>
+
+                            </template>
+                        </b-table>
+
+                    </template>
+                </div>
+                <div class="column is-1">
+
+                </div>
+                <div class="column">
+                    <br>
+                    <b-checkbox v-model="deltas_visible">
+                    </b-checkbox>
+                    <p><strong>Показать сравнение <br> с многолетней нормой</strong><br><br></p>
+                    <button class="button is-success is-large" @click="get_current_data">К текущему месяцу</button>
+                </div>
+            </div>
+            <div class="columns is-centered is-mobile">
+                <div class="column is-3">
+                </div>
+                <div class="column is-3">
+
+                    <b-field>
+                        <b-select v-model="selected_month" :placeholder="current_month" size="is-large">
+                            <option v-for="month in listOfMonths()" :key="month.id">
+                                {{ month.name }}
+                            </option>
+                        </b-select>
+                        <b-select v-model="selected_year" :placeholder="current_year" size="is-large">
+                            <option v-for="year in listOfYears()">
+                                {{year}}
+                            </option>
+                        </b-select>
+                        <p class="control">
+                            <button class="button is-primary is-large" @click="get_table_needed">Перейти</button>
+                        </p>
+                    </b-field>
+
+
+
+
+
+                </div>
+                <div class="column is-4">
+
+                </div>
+
+            </div>
+            <div class="columns is-centered">
+                <div class="column">
+                    <br><br><br>
+                </div>
+            </div>
+
+
+            <div class="columns is-centered">
+                <div class="column has-background-info">
+                    <br><br><br><br><br>
+                </div>
+            </div>
+
+
+        </section>
+
+
+
+
+
+        <section v-else>
+            <b-loading :is-full-page="true" :active="true" :can-cancel="true">
+
+            </b-loading>
+        </section>
+    </div>
+
+</body>
+<script>
+
+
+
+    var vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                showContent: false,
+                data: [],
+                deltas_visible: true,
+                not_absent: true,
+                not_latest: false,
+                //toggle: true,
+                current_month: {},
+                current_year: {},
+                extrema: {},
+                listOfYears: function () {
+                    var today = new Date();
+                    var curyear = today.getFullYear();
+                    return [...Array(curyear - 1881 + 1).keys()].map(i => i + 1881).reverse();
+                },
+                listOfMonths: function () {
+                    return [
+                        { id: 1, name: 'Январь' },
+                        { id: 2, name: 'Февраль' },
+                        { id: 3, name: 'Март' },
+                        { id: 4, name: 'Апрель' },
+                        { id: 5, name: 'Май' },
+                        { id: 6, name: 'Июнь' },
+                        { id: 7, name: 'Июль' },
+                        { id: 8, name: 'Август' },
+                        { id: 9, name: 'Сентябрь' },
+                        { id: 10, name: 'Октябрь' },
+                        { id: 11, name: 'Ноябрь' },
+                        { id: 12, name: 'Декабрь' },
+                    ]
+
+                },
+                selected_month: {},
+                selected_year: {},
+                selected_month_after_click: {},
+                selected_year_after_click: {},
+                avg: 0.0,
+                precip: 0.0,
+                normal_avg: 0.0,
+                normal_precip: 0
+            }
+        },
+
+        mounted() {
+            /*
+            if (this.toggle) {
+                axios.get('http://localhost:8000/api/current').then(response => {
+                    this.data = response.data
+                })
+            }
+            else {
+                axios.get('http://localhost:8000/api/month=9&year=2011').then(response => {
+                    this.data = response.data
+                })
+            }
+            */
+            axios.get('http://localhost:8000/api/current').then(response => {
+                this.data = response.data;
+
+
+                var i = 0;
+                for (; i < response.data.length; i++) {
+                    if (response.data[i].avg != "") {
+                        this.avg += parseFloat(response.data[i].avg);
+                        this.precip += parseFloat(response.data[i].precip);
+                    }
+                    else
+                        break;
+
+                }
+                if (i > 0)
+                    this.avg /= i;
+                this.avg = parseFloat(this.avg.toFixed(1));
+                this.precip = parseFloat(this.precip.toFixed(1))
+                var today = new Date();
+                cur_month = (today.getMonth() + 1).toString();
+                switch (cur_month) {
+                    case '1':
+                        cur_month = "Январь";
+                        break;
+                    case '2':
+                        cur_month = "Февраль";
+                        break;
+                    case '3':
+                        cur_month = "Март";
+                        break;
+                    case '4':
+                        cur_month = "Апрель";
+                        break;
+                    case '5':
+                        cur_month = "Май";
+                        break;
+                    case '6':
+                        cur_month = "Июнь";
+                        break;
+                    case '7':
+                        cur_month = "Июль";
+                        break;
+                    case '8':
+                        cur_month = "Август";
+                        break;
+                    case '9':
+                        cur_month = "Сентябрь";
+                        break;
+                    case '10':
+                        cur_month = "Октябрь";
+                        break;
+                    case '11':
+                        cur_month = "Ноябрь";
+                        break;
+                    case '12':
+                        cur_month = "Декабрь";
+                        break;
+                }
+                this.current_month = cur_month;
+                this.selected_month = cur_month;
+                this.selected_month_after_click = this.selected_month;
+
+                this.current_year = today.getFullYear().toString();
+                this.selected_year = today.getFullYear().toString();
+                this.selected_year_after_click = this.selected_year;
+                //month_id = today.getMonth() + 1
+                /*
+                axios.get('http://localhost:8000/api/averages/month=' + month_id).then(response => {
+                            for (var i = 0; i < response.data.length; i++) 
+                                this.normal_avg += parseFloat(response.data[i]);
+                            
+                            this.normal_avg /= response.data.length
+                            //alert(this.normal_avg)
+
+                            axios.get('http://localhost:8000/api/precip').then(response => {
+                            
+                            this.normal_precip = parseInt(response.data[month_id - 1])
+                            */
+                /*   
+               }).catch(function (error) {
+                   console.log(error)
+               })
+               */
+                axios.get('http://localhost:8000/api/extrema/month=' + (today.getMonth() + 1)).then(response => {
+                    this.extrema = response.data;
+                }).catch(function (error) {
+                    console.log(error)
+                })
+                this.showContent = true;
+            }).catch(function (error) {
+                this.showContent = true;
+                console.log(error)
+            })
+
+
+
+
+
+
+        },
+        methods: {
+            get_table_needed: function () {
+                this.not_absent = true;
+                this.showContent = false;
+                if ((this.current_month != this.selected_month) || (this.current_year != this.selected_year)) {
+                    this.not_latest = true
+                    if (((parseInt(this.selected_year) < 2001) && (parseInt(this.selected_year) > 1995)) || ((parseInt(this.selected_year) == 1882)))
+                        this.not_absent = false
+                    else
+                        this.not_absent = true
+                }
+                else
+                    this.not_latest = false
+                
+                month_id = this.listOfMonths().find(x => x.name === this.selected_month).id;
+                axios.get('http://localhost:8000/api/month=' + month_id + '&year=' + this.selected_year).then(response => {
+                    this.data = response.data;
+
+                    this.avg = 0.0;
+                    this.precip = 0.0;
+                    var i = 0;
+                    for (; i < response.data.length; i++) {
+                        if (response.data[i].avg != "") {
+                            this.avg += parseFloat(response.data[i].avg);
+                            this.precip += parseFloat(response.data[i].precip);
+                        }
+                        else
+                            break;
+
+                    }
+
+                    this.normal_avg = 0.0
+                    this.normal_precip = 0
+
+                    axios.get('http://localhost:8000/api/averages/month=' + month_id).then(response => {
+                        for (var i = 0; i < response.data.length; i++)
+                            this.normal_avg += parseFloat(response.data[i]);
+
+                        this.normal_avg /= response.data.length
+                        //alert(this.normal_avg)
+
+                        axios.get('http://localhost:8000/api/precip').then(response => {
+
+                            this.normal_precip = parseInt(response.data[month_id - 1])
+                        }).catch(function (error) {
+                            console.log(error)
+                        })
+                    }).catch(function (error) {
+                        console.log(error)
+                    })
+
+
+                    if (i > 0)
+                        this.avg /= i;
+                    this.avg = parseFloat(this.avg.toFixed(1));
+                    this.precip = parseFloat(this.precip.toFixed(1))
+                    if (this.selected_month_after_click != this.selected_month) {
+                    axios.get('http://localhost:8000/api/extrema/month=' + month_id).then(response => {
+                        this.extrema = response.data;
+                    }).catch(function (error) {
+                        this.showContent = true;
+                        console.log(error)
+                    })
+                }
+                    this.selected_month_after_click = this.selected_month;
+                    this.selected_year_after_click = this.selected_year;
+                    setTimeout(() => {
+                        this.showContent = true
+                    }, 600)
+
+
+                    //this.showContent = true;
+                    //alert(this.precip)
+                }).catch(function (error) {
+                    this.showContent = true;
+                    console.log(error)
+                })
+            },
+            get_current_data: function () {
+                this.selected_month = this.current_month;
+                this.selected_year = this.current_year;
+                this.get_table_needed();
+
+            }
+
+        }
+
+
+
+
+
+
     })
-  </script>
+</script>

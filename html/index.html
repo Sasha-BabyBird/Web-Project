@@ -1,29 +1,27 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Hello Bulma!</title>
-        <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/vue@2.5.21/dist/vue.js"></script>
-        <!--
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
-        -->
-        <link rel="stylesheet" href="./buefy.min.css"></script>
-        <script src="./axios.min.js"></script>
-        <script src="./buefy.min.js"></script>
-        <!--
-        <script
-      integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
-      crossorigin="anonymous"></script>
-        -->
-      </head>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hello Bulma!</title>
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.21/dist/vue.js"></script>
+    <!--
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
+    -->
+    <link rel="stylesheet" href="./buefy.min.css"></script>
+    <script src="./axios.min.js"></script>
+    <script src="./buefy.min.js"></script>
+    <!--
+    <script
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+    -->
+  </head>
   <body>
-    <a href="http://jquery.com/">jQuery</a>
   <section class="section">
-    <div class="container">
+    <div class="container" id="app">
       <h1 class="title">
-
         Hello World
       </h1>
       <p class="subtitle">
@@ -32,13 +30,75 @@
       <p id="example">
             Example
         </p>
-        <button class="button is-primary is-large is-outlined">
+        <button  class="button is-primary is-large is-outlined" @click.once="getdata">
             First Button
         </button> 
+        <div class="tile is-vertical is-primary is-8 box">
+            <button ref="big_button" class="button is-centered is-large is-rounded is-outlined is-success" 
+                @click.once="showsite" @click="toggletext" >
+             тест
+            </button>
+            <p v-if="seen"><strong>it's seen</strong></p>
+        </div>
+        <div class="tile box"
+        v-bind:class="sizeofcounter(num)" ref="counterdiv">
+          <span class="title">{{counter}}</span>
+        </div>
+
     </div>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     
   </section>
-  <script src="/js/client.js"></script>
+  <script>
+  new Vue({
+    el: "#app",
+    data:
+    {
+      seen: false,
+      num: 1,
+      counter: 1
+    },
+    created: function () {
+      this.seen = true;
+    },
+    methods: {
+    sizeofcounter: function(num) {
+      return 'is-' + num
+    },
+    getdata(event) {
+      myobj = this;
+      axios.get('http://localhost:8000/things')
+      .then(function (response) {
+        myobj.$dialog.alert(response.data);
+      })
+      .catch(function (error) {
+        myobj.$dialog.alert('Error!')
+      });
+      },
+    showsite: function (event) {
+      axios.get('http://www.apmath.spbu.ru')
+      .then(function (response) {
+        alert(response.data);
+      });
+      },
+    toggletext: function (event) {
+      if (!this.seen)
+        this.seen = true;
+      else
+        this.seen = false;
+      if (this.$refs["big_button"].innerText.length < 40) {
+        this.$refs["big_button"].innerText += '-тест-тест';
+        this.counter += 2;
+
+      }
+      this.num++;
+
   
+  
+    }
+    }
+})
+  </script>
+  <script>'js/client.js'</script>
   </body>
 </html>
