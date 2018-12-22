@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Архив погоды</title>
+    <script defer src="https://use.fontawesome.com/releases/v5.6.1/js/all.js"></script>
+    <script src="./lib/vue.min.js"></script>
+    <!--
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
+    -->
+    <link rel="stylesheet" href="./lib/buefy.min.css">
+    </script>
+    <script src="./lib/axios.min.js"></script>
+    <script src="./lib/buefy.min.js"></script>
+    <!--
+    <script
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+    -->
+</head>
+
+<body>
+    <div id="page2">
+        <section v-if="showContent">
+            <section class="hero is-bold is-light">
+                <div class="hero-body">
+                    <div class="container">
+                        <h1 class="title">
+                            Таблицы погоды по месяцам<br><br>
+                        </h1>
+                        <a class="has-text-black" href="./index.html">
+                            <b-icon pack="fas" icon="home" size="is-large"></b-icon><u>Главная страница</u>
+                        </a><br>
+                    </div>
+                </div>
+            </section>
+
+            <div class="columns is-centered">
+                <div class="column">
+                    <br>
+                    <p class="has-text-centered is-size-4">
+                        Таблица погоды в Санкт-Петербурге за <strong>{{ selected_month_after_click.toLowerCase() }} {{
+                            selected_year_after_click}} </strong> года.
+                    </p>
+                    <br>
+                </div>
+            </div>
+
+
+
+
+            <nav class="level">
+                <div class="level-item has-text-centered">
+                    <div>
+                        <p class="heading">Самый тёплый {{ selected_month_after_click.toLowerCase() }}</p>
+                        <p class="title has-text-danger">{{ extrema.most_warm + '°' }}<br></p>
+                        <p class="is-size-4">{{ extrema.most_warm_year + ' г.'}}</p>
+                    </div>
+                </div>
+                <div class="level-item has-text-centered">
+                    <div>
+                        <p class="heading">Самый холодный {{ selected_month_after_click.toLowerCase() }}</p>
+                        <p class="title has-text-link">{{ extrema.most_cold + '°' }}<br></p>
+                        <p class="is-size-4">{{ extrema.most_cold_year + ' г.' }}</p>
+
+                    </div>
+                </div>
+                <div class="level-item has-text-centered">
+                    <div>
+                        <p class="heading">Самый влажный {{ selected_month_after_click.toLowerCase() }}</p>
+                        <p class="title has-text-info">{{ extrema.most_wet + ' мм' }}<br></p>
+                        <p class="is-size-4">{{ extrema.most_wet_year + ' г.' }}</p>
+                    </div>
+                </div>
+                <div class="level-item has-text-centered">
+                    <div>
+                        <p class="heading">Самый сухой {{ selected_month_after_click.toLowerCase() }}</p>
+                        <p class="title has-text-warning">{{ extrema.most_dry + ' мм' }}<br></p>
+                        <p class="is-size-4">{{ extrema.most_dry_year + ' г.' }}</p>
+                    </div>
+                </div>
+            </nav>
+
+
+            <div class="columns is-centered">
+                <div class="column">
+                    <nav v-if="not_latest && not_absent" class="level">
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">НОРМА ТЕМПЕРАТУРЫ</p>
+                                <p class="title">{{ normal_avg.toFixed(1) + '°' }}</p>
+                            </div>
+                        </div>
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">ФАКТИЧЕСКАЯ ТЕМПЕРАТУРА</p>
+                                <p class="title">{{ avg.toFixed(1) + '°' }}</p>
+                            </div>
+                        </div>
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">ОТКЛОНЕНИЕ ОТ НОРМЫ</p>
+                                <p class="title has-text-warning">{{ (avg - normal_avg).toFixed(1) + '°' }}</p>
+                            </div>
+                        </div>
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">НОРМА ОСАДКОВ</p>
+                                <p class="title">{{ normal_precip + ' мм' }}</p>
+                            </div>
+                        </div>
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">ВЫПАЛО ОСАДКОВ</p>
+                                <p class="title">{{ precip.toFixed(1) + ' мм' }}</p>
+                            </div>
+                        </div>
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">ПРОЦЕНТ ОСАДКОВ ОТ НОРМЫ</p>
+                                <p class="title has-text-warning">{{ ((precip/normal_precip) * 100).toFixed(0) + '%' }}</p>
+                            </div>
+                        </div>
+                    </nav>
+                    <nav v-else-if="not_latest && !not_absent" class="level">
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">НОРМА ТЕМПЕРАТУРЫ</p>
+                                <p class="title">{{ normal_avg.toFixed(1) + '°' }}</p>
+                            </div>
+                        </div>
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">НОРМА ОСАДКОВ</p>
+                                <p class="title">{{ normal_precip + ' мм' }}</p>
+                            </div>
+                        </div>
+                    </nav>
+                    <nav v-else class="level">
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">ФАКТИЧЕСКАЯ ТЕМПЕРАТУРА НА ДАННЫЙ МОМЕНТ</p>
+                                <p class="title">{{ avg.toFixed(1) + '°' }}</p>
+                            </div>
+                        </div>
+                        <div class="level-item has-text-centered">
+                            <div>
+                                <p class="heading">ВЫПАЛО ОСАДКОВ НА ДАННЫЙ МОМЕНТ</p>
+                                <p class="title">{{ precip.toFixed(1) + ' мм' }}</p>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="columns is-centered is-mobile">
+                <div class="column is-4">
+                </div>
+                <div v-if="!not_absent" class="column">
+                    <br>
+                    <p class="has-text-centered is-size-4 has-text-danger">
+                        К сожалению, в базе данных не удалось найти
+                        данные за этот месяц...
+                    </p>
+                    <br>
+                </div>
+                <div v-else class="column is-4">
+                    <template>
+                        <b-table class="table is-striped is-bordered is-narrow" :data="data" :paginated="false"
+                            :per-page="5">
+                            <template slot-scope="props">
+                                <b-table-column field="date" label="Дата">
+                                    <span class="is-size-6">
+                                        <strong> {{ props.row.date }} </strong>
+                                </b-table-column>
+
+                                <b-table-column field="min" label="Минимум">
+                                    <span class="is-size-5 has-text-link">
+                                        {{ props.row.min }}
+                                    </span>
+                                </b-table-column>
+
+                                <b-table-column field="avg" label="Средняя">
+                                    <span class="is-size-5 has-text-grey-dark">
+                                        {{ props.row.avg }}
+                                    </span>
+                                </b-table-column>
+                                <b-table-column field="max" label="Максимум">
+                                    <span class="is-size-5 has-text-danger">
+                                        {{ props.row.max }}
+                                    </span>
+                                </b-table-column>
+                                <b-table-column field="delta" label="Откл." :visible="deltas_visible">
+                                    <span class="is-size-5" :class="props.row.delta === undefined ? 
+                                      'has-text-dark' : (Math.abs(parseFloat(props.row.delta)) > 1  ? 
+                                      (parseFloat(props.row.delta) > 0 ? 'has-text-danger' : 'has-text-link')
+                                      : 'has-text-success')">
+                                        {{ props.row.delta }}
+                                    </span>
+                                </b-table-column>
+                                <b-table-column field="precip" label="Осадки, мм">
+                                    <span class="is-size-5" :class="((parseFloat(props.row.avg)  < 1.0) && (props.row.precip !== '0.0')) ? 'has-text-info' 
+                                   : (props.row.precip !== '0.0' ? 'has-text-grey' : 'has-text-dark')">
+                                        {{ props.row.precip }}
+                                    </span>
+                                </b-table-column>
+
+                            </template>
+                        </b-table>
+
+                    </template>
+                </div>
+                <div class="column is-1">
+
+                </div>
+                <div class="column">
+                    <br>
+                    <b-checkbox v-if="not_absent" v-model="deltas_visible">
+                    </b-checkbox>
+                    <p v-if="not_absent"><strong>Показать сравнение <br> с многолетней нормой</strong><br><br></p>
+                    <button class="button is-success is-large" @click="get_current_data">К текущему месяцу</button>
+                </div>
+            </div>
+            <div class="columns is-centered is-mobile">
+                <div class="column is-3">
+                </div>
+                <div class="column is-3">
+
+                    <b-field>
+                        <b-select v-model="selected_month" :placeholder="current_month" size="is-large">
+                            <option v-for="month in listOfMonths()" :key="month.id">
+                                {{ month.name }}
+                            </option>
+                        </b-select>
+                        <b-select v-model="selected_year" :placeholder="current_year" size="is-large">
+                            <option v-for="year in listOfYears()">
+                                {{year}}
+                            </option>
+                        </b-select>
+                        <p class="control">
+                            <button class="button is-outlined is-primary is-large" @click="get_table_needed">Перейти</button>
+                        </p>
+                    </b-field>
+
+
+
+
+
+                </div>
+                <div class="column is-4">
+
+                </div>
+
+            </div>
+            <div class="columns is-centered">
+                <div class="column">
+                    <br><br><br>
+                </div>
+            </div>
+
+
+            <section class="hero is-bold is-info has-text-centered">
+                <div class="hero-body">
+                    <br><br><span class="icon is-small">
+                        <i class="fas fa-copyright"></i>
+                    </span>
+                    <span class="has-text-black">Александр Гоготов, группа 332 
+                            <a class="has-text-black" href="http://www.apmath.spbu.ru/ru/" target="_blank"><u>ПМ-ПУ</u></a>
+                            СПбГУ<br>Декабрь 2018<br></span>
+                    <a class="has-text-black" href="https://github.com/Sasha-BabyBird/Web-Project" target="_blank">
+                        <b-icon pack="fab" icon="github" size="is-large"></b-icon>
+                    </a><br>
+                    <a class="has-text-black" href="http://pogodaiklimat.ru/monitor.php?id=26063" target="_blank"><u>Погода
+                            и климат</u></a><br>
+                    <a class="has-text-black" href="http://thermo.karelia.ru/weather/w_history.php?town=spb" target="_blank"><u>Сайт
+                            с архивом погоды за много лет</u></a><br>
+                </div>
+            </section>
+
+
+        </section>
+
+
+
+
+
+        <section v-else>
+            <b-loading :is-full-page="true" :active="true" :can-cancel="true">
+
+            </b-loading>
+        </section>
+    </div>
+
+</body>
+<script src="./scripts/tables.js"></script>

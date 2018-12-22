@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Погода по дням</title>
+    <script defer src="https://use.fontawesome.com/releases/v5.6.1/js/all.js"></script>
+    <script src="./lib/vue.min.js"></script>
+    <!--
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
+    -->
+    <link rel="stylesheet" href="./lib/buefy.min.css">
+    </script>
+    <script src="./lib/axios.min.js"></script>
+    <script src="./lib/buefy.min.js"></script>
+    <!--
+    <script
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+    -->
+</head>
+
+<body>
+    <div id="page3">
+        <div v-if="historicals_loaded">
+            <section class="hero is-bold is-light">
+                <div class="hero-body">
+                    <div class="container">
+                        <h1 class="title">
+                            Погода в выбранный день<br><br>
+                        </h1>
+                        <a class="has-text-black" href="./index.html">
+                            <b-icon pack="fas" icon="home" size="is-large"></b-icon><u>Главная страница</u>
+                        </a><br>
+                    </div>
+                </div>
+            </section>
+            <div class="columns is-centered">
+                <div class="column">
+                    <br><br><br>
+                </div>
+            </div>
+
+            <div class="columns is-centered">
+                <div class="column is-1">
+
+                </div>
+                <div class="column is-2 has-text-centered" :class="isCollapsedOpen ? 'box' : ''">
+                    <b-collapse :open="isCollapsedOpen">
+                        <button class="button is-primary" slot="trigger" @click="isCollapsedOpen = !isCollapsedOpen"
+                             :disabled='!current_loaded'>
+                            Показать/скрыть текущую
+                        </button>
+                        <br> <strong>Сейчас в Санкт-Петербурге: </strong><br>
+                        <span class="is-size-3" :class="parseFloat(current_temp) < 0 ? 'has-text-link' : 'has-text-danger'">{{
+                            current_temp.includes('.') ? current_temp.split('.')[0] + ',' : current_temp }}</span>
+                        <span class="is-size-4" :class="parseFloat(current_temp) < 0 ? 'has-text-link' : 'has-text-danger'">{{
+                            current_temp.includes('.') ? current_temp.split('.')[1] : '' }}</span>
+                        <span class="is-size-4">{{' '}}°C</span>
+                    </b-collapse>
+                </div>
+                <div class="column is-2 box has-text-centered">
+
+                    <p>Лет назад:</p>
+                    <b-tabs position="is-centered">
+                        <b-tab-item :label="numbers()[0]">
+                            В этот день в <strong>{{current_year - parseFloat(numbers()[0])}}</strong> было <br>
+                            <strong>от <span :class="parseFloat(historicals_of_the_day.min_1) < parseFloat(current_temp) ? 'has-text-link' : 'has-text-danger'">{{
+                                    historicals_of_the_day.min_1 + '°' }}</span>
+                                до <span :class="parseFloat(historicals_of_the_day.max_1) < parseFloat(current_temp) ? 'has-text-link' : 'has-text-danger'">{{
+                                    historicals_of_the_day.max_1 + '°' }}</span></strong>
+                        </b-tab-item>
+                        <b-tab-item :label="numbers()[1]">
+                            В этот день в <strong>{{current_year - parseFloat(numbers()[1])}}</strong> было <br>
+                            <strong>от <span :class="parseFloat(historicals_of_the_day.min_2) < parseFloat(current_temp) ? 'has-text-link' : 'has-text-danger'">{{
+                                    historicals_of_the_day.min_2 + '°' }}</span>
+                                до <span :class="parseFloat(historicals_of_the_day.max_2) < parseFloat(current_temp) ? 'has-text-link' : 'has-text-danger'">{{
+                                    historicals_of_the_day.max_2 + '°' }}</span></strong>
+                        </b-tab-item>
+                        <b-tab-item :label="numbers()[2]">
+                            В этот день в <strong>{{current_year - parseFloat(numbers()[2])}}</strong> было <br>
+                            <strong>от <span :class="parseFloat(historicals_of_the_day.min_3) < parseFloat(current_temp) ? 'has-text-link' : 'has-text-danger'">{{
+                                    historicals_of_the_day.min_3 + '°' }}</span>
+                                до <span :class="parseFloat(historicals_of_the_day.max_3) < parseFloat(current_temp) ? 'has-text-link' : 'has-text-danger'">{{
+                                    historicals_of_the_day.max_3 + '°' }}</span></strong>
+                        </b-tab-item>
+                        <b-tab-item :label="numbers()[3]">
+                            В этот день в <strong>{{current_year - parseFloat(numbers()[3])}}</strong> было <br>
+                            <strong>от <span :class="parseFloat(historicals_of_the_day.min_4) < parseFloat(current_temp) ? 'has-text-link' : 'has-text-danger'">{{
+                                    historicals_of_the_day.min_4 + '°' }}</span>
+                                до <span :class="parseFloat(historicals_of_the_day.max_4) < parseFloat(current_temp) ? 'has-text-link' : 'has-text-danger'">{{
+                                    historicals_of_the_day.max_4 + '°' }}</span></strong>
+                        </b-tab-item>
+                        <b-tab-item :label="numbers()[4]">
+                            В этот день в <strong>{{current_year - parseFloat(numbers()[4])}}</strong> было <br>
+                            <strong>от <span :class="parseFloat(historicals_of_the_day.min_1) < parseFloat(current_temp) ? 'has-text-link' : 'has-text-danger'">{{
+                                    historicals_of_the_day.min_5 + '°' }}</span>
+                                до <span :class="parseFloat(historicals_of_the_day.max_1) < parseFloat(current_temp) ? 'has-text-link' : 'has-text-danger'">{{
+                                    historicals_of_the_day.max_5 + '°' }}</span></strong>
+                        </b-tab-item>
+                    </b-tabs>
+
+                </div>
+
+                <div class="column is-3">
+
+                    <b-field align="center" label="Выберите день для показа погоды" :type="selected_date == null && pointless_click ? 'is-danger' : ''"
+                        :message="selected_date == null && pointless_click ? 'Поле ввода пустое либо введена некорректная дата' : ''">
+
+                        <b-datepicker v-model="selected_date" placeholder="Введите или выберите дату..." icon-pack="fas"
+                            icon="calendar-alt" :min-date="new Date(1881, 0, 1)" :max-date="new Date()"
+                            :first-day-of-week="1" :day-names="day_names" :month-names="month_names" :date-parser="custom_date_parse"
+                            editable>
+                            <button class="button is-primary" @click="selected_date = current_date()">
+                                <b-icon pack="fas" icon="calendar-alt"></b-icon>
+                                <span>Сегодня</span>
+                            </button>
+
+                            <button class="button is-danger" @click="selected_date = null; pointless_click = false; clicked = false">
+                                <b-icon pack="fas" icon="times"></b-icon>
+                                <span>Сброс</span>
+                            </button>
+                        </b-datepicker>
+
+
+                    </b-field>
+                    <div class="buttons are-medium is-right">
+                        <button class="button is-outlined is-success" @click="get_date_needed">Выбрать</button>
+                        <button class="button is-outlined is-danger" @click="selected_date = null; pointless_click = false; clicked = false">
+                            <span>Сброс</span>
+                            <span class="icon is-small">
+                                <i class="fas fa-times"></i>
+                            </span>
+
+                        </button>
+                    </div>
+
+                </div>
+                <div class="column is-3">
+                    <b-table v-if="day_data[0].min != '' && clicked" class="table is-bordered is-narrow" :data="day_data"
+                        :paginated="false" :per-page="5">
+                        <template slot-scope="props">
+                            <b-table-column field="date" label="Дата">
+                                <span class="is-size-6">
+                                    <strong> {{ props.row.date}} </strong>
+                            </b-table-column>
+
+                            <b-table-column field="min" label="Минимум">
+                                <span class="is-size-5" :class="parseFloat(props.row.min) < parseFloat(current_temp) ? 'has-text-link' : 
+                                                                      (parseFloat(props.row.min) == parseFloat(current_temp) ? 
+                                                                      'has-text-dark-grey' : 'has-text-danger')">
+                                    {{ props.row.min }}
+                                </span>
+                            </b-table-column>
+
+                            <b-table-column field="avg" label="Средняя">
+                                <span class="is-size-5" :class="(parseFloat(props.row.avg) < parseFloat(current_temp)) ? 'has-text-link' : 
+                                        (parseFloat(props.row.avg) == parseFloat(current_temp) ? 
+                                        'has-text-dark-grey' : 'has-text-danger')">
+                                    {{ props.row.avg }}
+                                </span>
+                            </b-table-column>
+                            <b-table-column field="max" label="Максимум">
+                                <span class="is-size-5" :class="(parseFloat(props.row.max) < parseFloat(current_temp)) ? 'has-text-link' : 
+                                        (parseFloat(props.row.max) == parseFloat(current_temp) ? 
+                                        'has-text-dark-grey' : 'has-text-danger')">
+                                    {{ props.row.max }}
+                                </span>
+                            </b-table-column>
+                            <b-table-column field="precip" label="Осадки, мм">
+                                <span class="is-size-5" :class="((parseFloat(props.row.avg)  < 1.0) && (props.row.precip !== '0.0')) ? 'has-text-info' 
+                                       : (props.row.precip !== '0.0' ? 'has-text-grey' : 'has-text-dark')">
+                                    {{ props.row.precip }}
+                                </span>
+                            </b-table-column>
+                        </template>
+                    </b-table>
+                    <p v-else-if="(selected_date_after_click - current_date() == 0 && day_data_loaded) && clicked"
+                        class="has-text-centered is-size-4 has-text-danger">
+                        Данные за сегодня пока не появились
+                    </p>
+                    <p v-else-if="(selected_date_after_click - current_date() > 0 && day_data_loaded) && clicked" class="has-text-centered is-size-4 has-text-danger">
+                        Этот день ещё не наступил!
+                    </p>
+                    <p v-else-if="day_data_loaded && clicked" class="has-text-centered is-size-4 has-text-danger">
+                        Нет данных за этот день
+                    </p>
+                </div>
+                <div class="column is-1">
+
+                </div>
+            </div>
+
+            <div class="columns is-centered">
+                <div class="column">
+                    <br><br><br><br>
+                </div>
+
+            </div>
+            <section class="hero is-bold is-info has-text-centered">
+                <div class="hero-body">
+                    <br><br><span class="icon is-small">
+                        <i class="fas fa-copyright"></i>
+                    </span>
+                    <span class="has-text-black">Александр Гоготов, группа 332 
+                            <a class="has-text-black" href="http://www.apmath.spbu.ru/ru/" target="_blank"><u>ПМ-ПУ</u></a>
+                            СПбГУ<br>Декабрь 2018<br></span>
+                    <a class="has-text-black" href="https://github.com/Sasha-BabyBird/Web-Project" target="_blank">
+                        <b-icon pack="fab" icon="github" size="is-large"></b-icon>
+                    </a><br>
+                    <a class="has-text-black" href="http://pogodaiklimat.ru/monitor.php?id=26063" target="_blank"><u>Погода
+                            и климат</u></a><br>
+                    <a class="has-text-black" href="http://thermo.karelia.ru/weather/w_history.php?town=spb" target="_blank"><u>Сайт
+                            с архивом погоды за много лет</u></a><br>
+                </div>
+            </section>
+        </div>
+        <div v-else>
+            <b-loading :is-full-page="false" :active="true" :can-cancel="true">
+
+            </b-loading>
+        </div>
+
+
+
+    </div>
+</body>
+
+<script src="./scripts/the_day.js"></script>

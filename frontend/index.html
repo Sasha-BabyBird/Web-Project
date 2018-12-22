@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Главная страница</title>
+  <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+  <script src="./lib/vue.min.js"></script>
+  <!--
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
+    -->
+  <link rel="stylesheet" href="./lib/buefy.min.css">
+  </script>
+  <script src="./lib/axios.min.js"></script>
+  <script src="./lib/buefy.min.js"></script>
+  <!--
+    <script
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+    -->
+</head>
+
+<body>
+  <div id="app">
+    <section class="hero is-bold is-light has-text-centered">
+      <div class="hero-body">
+        <div class="content">
+          <a class="is-size-3" href="./tables.html"> Посмотреть погоду по месяцам</a><br></li>
+          <a class="is-size-3" href="./the_day.html"> Посмотреть погоду в выбранный день и сравнить с текущей</a><br><br>
+          <p class="is-size-4 has-text-black" align="left">Сайт объединяет архивы погоды, найденные в Интернете. Вы
+            можете просмотреть как таблицу погоды в конкретный месяц, так и сравнить текущую погоду с погодой в другой
+            день.
+            В базе данных есть информация о температуре и осадках с начала 1881 года, за исключением 1882 и 1996-2000
+            гг.
+          </p>
+
+
+
+        </div>
+      </div>
+    </section>
+    <br><br><br><br>
+    <div class="columns is-variable is-6">
+      <div class="column is-narrow box is-offset-4">
+        <a href="https://bulma.io">
+          <img src="https://bulma.io/images/made-with-bulma--semiblack.png" alt="Made with Bulma" width="256" height="48">
+        </a>
+      </div>
+      <div class="column is-narrow">
+        <a href="https://vuejs.org">
+          <img src="https://ru.vuejs.org/images/logo.png" width="60" height="60"></a>
+      </div>
+      <div class="column is-narrow">
+        <a href="https://buefy.github.io">
+          <img src="https://buefy.github.io/static/img/buefy.1d65c18.png" width="120" height="47"></a>
+      </div>
+      <div class="column is-narrow">
+        <a href="https://falconframework.org/">
+          <img src="https://falconframework.org/img/logo.svg" width="60" height="60"></a>
+      </div>
+      <div class="column is-narrow">
+        <a href="http://www.pogodaiklimat.ru" target="_blank"><img src="http://www.pogodaiklimat.ru/image/button1.gif"
+            width="88" height="31" alt="Погода и климат"></a>
+      </div>
+    </div>
+
+    <br><br><br><br>
+    <section class="hero is-bold is-info has-text-centered">
+      <div class="hero-body">
+        <br><br><span class="icon is-small">
+          <i class="fas fa-copyright"></i>
+        </span>
+        <span class="has-text-black">Александр Гоготов, группа 332 
+          <a class="has-text-black" href="http://www.apmath.spbu.ru/ru/" target="_blank"><u>ПМ-ПУ</u></a>
+          СПбГУ<br>Декабрь 2018<br></span>
+        <a class="has-text-black" href="https://github.com/Sasha-BabyBird/Web-Project" target="_blank">
+          <b-icon pack="fab" icon="github" size="is-large"></b-icon>
+        </a><br>
+        <a class="has-text-black" href="http://pogodaiklimat.ru/monitor.php?id=26063" target="_blank"><u>Погода и
+            климат</u></a><br>
+        <a class="has-text-black" href="http://thermo.karelia.ru/weather/w_history.php?town=spb" target="_blank"><u>Сайт
+            с архивом погоды за много лет</u></a><br>
+      </div>
+    </section>
+
+
+
+
+  </div>
+</body>
+<script>
+  new Vue({
+    el: "#app",
+    data() {
+      return {
+
+      }
+    },
+    mounted() {
+
+    },
+    methods: {
+
+    }
+  })
+</script>
+
+</html>

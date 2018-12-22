@@ -4,6 +4,7 @@ from wsgiref import simple_server
 import urllib
 from datetime import date
 import json
+import re
  
 
 # get the contents
@@ -37,6 +38,7 @@ def get_from_thermo_karelia(month=1, year=1881):
                                         .replace(' октября ', '.10.')
                                         .replace(' ноября ', '.11.')
                                         .replace(' декабря ', '.12.'))
+                datalist[j] = re.sub(r'\.\d{4}', '', datalist[j])
         datatuple = tuple(datalist)
         info_list.append(datatuple)
     headers = ("date", "min", "avg", "max", "precip")
@@ -97,13 +99,13 @@ def parse_archive(first_year=1881, last_year=date.today().year + 1):
         whole_json_data.append(dict(zip(month_headers, list_of_data_by_months)))
         print(i)
     whole_json_data = dict(zip(year_headers, whole_json_data))
-    with open('weather_archive.json', 'w+') as archive_file:
+    with open('./backend/json/weather_archive.json', 'w+') as archive_file:
         json.dump(whole_json_data, archive_file, indent=4)
     return
 
 
 def update_archive(month=date.today().month, year=date.today().year):
-    with open('weather_archive.json', 'r+') as jsonfile:
+    with open('./backend/json/weather_archive.json', 'r+') as jsonfile:
         dictdata = json.load(jsonfile)
     
     lastyearparsed = int(list(dictdata)[-1])
@@ -122,12 +124,12 @@ def update_archive(month=date.today().month, year=date.today().year):
             else:
                 for j in range(1, date.today().month + 1):
                     dictdata[i][j] = get_from_pogoda_i_klimat(j, i)
-        with open('weather_archive.json', 'w+') as archive_file:
+        with open('./backend/json/weather_archive.json', 'w+') as archive_file:
             json.dump(dictdata, archive_file, indent=4)
     elif date.today().month > lastmonthparsed and date.today().day > 1:
         for j in range(lastmonthparsed, date.today().month + 1):
             dictdata[str(lastyearparsed)][j] = get_from_pogoda_i_klimat(j, lastyearparsed) 
-        with open('weather_archive.json', 'w+') as archive_file:
+        with open('./backend/json/weather_archive.json', 'w+') as archive_file:
             json.dump(dictdata, archive_file, indent=4)
     elif month == date.today().month and year == date.today().year:
         dictdata[str(lastyearparsed)][str(lastmonthparsed)] = get_from_pogoda_i_klimat(lastmonthparsed, lastyearparsed)
@@ -159,7 +161,7 @@ def parse_averages():
         #print(avg_daily_list)
         avg_full_data.append(avg_daily_list)
     avg_full_data = dict(zip(month_headers, avg_full_data))
-    with open('averages.json', 'w+') as archive_file:
+    with open('./backend/json/averages.json', 'w+') as archive_file:
         json.dump(avg_full_data, archive_file, indent=4)
     return
     '''
@@ -189,34 +191,39 @@ def manual_get_extrema():
     for i in range(12):
         month_data[i] = dict(zip(inner_headers, month_data[i]))
     month_data = dict(zip(month_headers, month_data))
-    with open('extrema.json', 'w+') as archive_file:
+    with open('./backend/json/extrema.json', 'w+') as archive_file:
         json.dump(month_data, archive_file, indent=4)
     return
 
 def get_extrema_by_month(month):
-    with open('extrema.json', 'r+') as jsonfile:
+    with open('./backend/json/extrema.json', 'r+') as jsonfile:
         dictdata = json.load(jsonfile)
     return dictdata[str(month)]
 
 
 def get_averages_by_month(month):
-    with open('averages.json', 'r+') as jsonfile:
+    with open('./backend/json/averages.json', 'r+') as jsonfile:
         dictdata = json.load(jsonfile)
     return dictdata[str(month)]
 
+def get_current_weather():
+    response = urllib.request.urlopen('https://www.gismeteo.ru/weather-sankt-peterburg-4079/now')
+    html = response.read()
+    #print(html)
+    parsed_html = BeautifulSoup(html, features="html.parser")
+    all_values = parsed_html.body.find_all('span', "nowvalue__text_l")
+    #print(all_values)
+    currtemp = all_values[0].contents[0].contents[0] + all_values[0].contents[1]
+    if len(all_values[0].contents) > 2:
+        currtemp += all_values[0].contents[2].contents[0]
+    currtemp = currtemp.replace(',', '.').replace('−', '-')
+    return currtemp
 #parse_archive()
 #parse_averages()
 #print(get_averages_from_month(3))
 #get_from_thermo_karelia(5, 1925)
 #manual_get_extrema()
-response = urllib.request.urlopen('https://www.gismeteo.ru/weather-sankt-peterburg-4079/now')
-html = response.read()
-#print(html)
-parsed_html = BeautifulSoup(html, features="html.parser")
-all_values = parsed_html.body.find_all('span', "nowvalue__text_l")
-#currtemp = all_values[0].contents[0].contents[0] + all_values[0].contents[1] + all_values[0].contents[2].contents[0]
-#currtemp = currtemp.replace(',', '.').replace('−', '-')
-#print(float(currtemp))
+#print(get_current_weather())
 
 
 #print(list_for_json)
@@ -244,6 +251,18 @@ class WeatherArchive(object):
         #print(result)
         resp.body = json.dumps(result)
 
+class WeatherArchiveByDay(object):
+    def on_get(self, req, resp, day=date.today().day, month=date.today().month, year=date.today().year):
+        if int(month) == date.today().month and int(year) == date.today().year:
+            dictdata = update_archive(int(month), int(year))
+        else:
+            dictdata = update_archive(month, year)
+        if len(dictdata[year][month]) > 1:
+            result = dictdata[year][month][int(day)-1]
+        else:
+            result = dictdata[year][month][0]
+        #print(dictdata[year][month])
+        resp.body = json.dumps(result)
 
 class ParseArchive(object):
     def on_get(self, req, resp):
@@ -265,6 +284,83 @@ class ExtremaArchive(object):
     def on_get(self, req, resp, month=date.today().month):
         dictdata = get_extrema_by_month(month)
         resp.body = json.dumps(dictdata)
+
+class CurrentWeather(object):
+    def on_get(self, req, resp):
+        result = get_current_weather()
+        resp.body = result
+
+class ThisDayArchive(object):
+    def on_get(self, req, resp, day=date.today().day, month=date.today().month, year=date.today().year):
+        datalist = []
+        current_record = update_archive(month, year-1)
+        if day != 29 and month != 2:
+            if len(current_record[str(year-1)][str(month)]) > 1:
+                datalist.append(current_record[str(year-1)][str(month)][day-1]['min'])
+                datalist.append(current_record[str(year-1)][str(month)][day-1]['max'])
+            else:
+                datalist.append('')
+                datalist.append('')
+            if len(current_record[str(year-5)][str(month)]) > 1:
+                datalist.append(current_record[str(year-5)][str(month)][day-1]['min'])
+                datalist.append(current_record[str(year-5)][str(month)][day-1]['max'])
+            else:
+                datalist.append('')
+                datalist.append('')
+            if len(current_record[str(year-10)][str(month)]) > 1:
+                datalist.append(current_record[str(year-10)][str(month)][day-1]['min'])
+                datalist.append(current_record[str(year-10)][str(month)][day-1]['max'])
+            else:
+                datalist.append('')
+                datalist.append('')
+            if len(current_record[str(year-50)][str(month)]) > 1:
+                datalist.append(current_record[str(year-50)][str(month)][day-1]['min'])
+                datalist.append(current_record[str(year-50)][str(month)][day-1]['max'])
+            else:
+                datalist.append('')
+                datalist.append('')
+            if len(current_record[str(year-100)][str(month)]) > 1:
+                datalist.append(current_record[str(year-100)][str(month)][day-1]['min'])
+                datalist.append(current_record[str(year-100)][str(month)][day-1]['max'])
+            else:
+                datalist.append('')
+                datalist.append('')
+        else:
+            if len(current_record[str(year-4)][str(month)]) > 1:
+                datalist.append(current_record[str(year-4)][str(month)][day-1]['min'])
+                datalist.append(current_record[str(year-4)][str(month)][day-1]['max'])
+            else:
+                datalist.append('')
+                datalist.append('')
+            if len(current_record[str(year-8)][str(month)]) > 1:
+                datalist.append(current_record[str(year-8)][str(month)][day-1]['min'])
+                datalist.append(current_record[str(year-8)][str(month)][day-1]['max'])
+            else:
+                datalist.append('')
+                datalist.append('')
+            if len(current_record[str(year-20)][str(month)]) > 1:
+                datalist.append(current_record[str(year-20)][str(month)][day-1]['min'])
+                datalist.append(current_record[str(year-20)][str(month)][day-1]['max'])
+            else:
+                datalist.append('')
+                datalist.append('')
+            if len(current_record[str(year-40)][str(month)]) > 1:
+                datalist.append(current_record[str(year-40)][str(month)][day-1]['min'])
+                datalist.append(current_record[str(year-40)][str(month)][day-1]['max'])
+            else:
+                datalist.append('')
+                datalist.append('')
+            if len(current_record[str(year-100)][str(month)]) > 1:
+                datalist.append(current_record[str(year-100)][str(month)][day-1]['min'])
+                datalist.append(current_record[str(year-100)][str(month)][day-1]['max'])
+            else:
+                datalist.append('')
+                datalist.append('')
+        headers = ["min_1", "max_1", "min_2", "max_2", "min_3", "max_3", "min_4", "max_4", "min_5", "max_5"]
+        datalist = dict(zip(headers, datalist))
+        resp.body = json.dumps(datalist)
+        
+
 # falcon.API instances are callable WSGI apps
 app = falcon.API()
 
@@ -275,11 +371,14 @@ things = ThingsResource()
 # things will handle all requests to the '/things' URL path
 app.add_route('/things', things)
 app.add_route('/api/month={month}&year={year}', WeatherArchive())
+app.add_route('/api/day={day}&month={month}&year={year}', WeatherArchiveByDay())
 app.add_route('/api/averages/month={month}', AveragesArchive())
 app.add_route('/api/extrema/month={month}', ExtremaArchive())
 app.add_route('/api/current', WeatherArchive())
 app.add_route('/api/parse', ParseArchive())
 app.add_route('/api/precip', PrecipitationArchive())
+app.add_route('/api/today_weather', CurrentWeather())
+app.add_route('/api/this_day_history', ThisDayArchive())
 if __name__ == '__main__':
     httpd = simple_server.make_server('localhost', 8000, app)
     httpd.serve_forever()
