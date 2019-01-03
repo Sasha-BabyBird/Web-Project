@@ -57,99 +57,100 @@ var vm_tables = new Vue({
             })
         }
         */
-        axios.get('http://localhost:8000/api/current').then(response => {
-            this.data = response.data;
+       axios.get('http://localhost:8000/api/current').then(response => {
+        this.data = response.data;
 
 
-            var i = 0;
-            for (; i < response.data.length; i++) {
-                if (response.data[i].avg != "") {
-                    this.avg += parseFloat(response.data[i].avg);
-                    this.precip += parseFloat(response.data[i].precip);
-                }
-                else
-                    break;
-
+        var i = 0;
+        for (; i < response.data.length; i++) {
+            if (response.data[i].avg != "") {
+                this.avg += parseFloat(response.data[i].avg);
+                this.precip += parseFloat(response.data[i].precip);
             }
-            if (i > 0)
-                this.avg /= i;
-            this.avg = parseFloat(this.avg.toFixed(1));
-            this.precip = parseFloat(this.precip.toFixed(1))
-            var today = new Date();
-            cur_month = (today.getMonth() + 1).toString();
-            switch (cur_month) {
-                case '1':
-                    cur_month = "Январь";
-                    break;
-                case '2':
-                    cur_month = "Февраль";
-                    break;
-                case '3':
-                    cur_month = "Март";
-                    break;
-                case '4':
-                    cur_month = "Апрель";
-                    break;
-                case '5':
-                    cur_month = "Май";
-                    break;
-                case '6':
-                    cur_month = "Июнь";
-                    break;
-                case '7':
-                    cur_month = "Июль";
-                    break;
-                case '8':
-                    cur_month = "Август";
-                    break;
-                case '9':
-                    cur_month = "Сентябрь";
-                    break;
-                case '10':
-                    cur_month = "Октябрь";
-                    break;
-                case '11':
-                    cur_month = "Ноябрь";
-                    break;
-                case '12':
-                    cur_month = "Декабрь";
-                    break;
-            }
-            this.current_month = cur_month;
-            this.selected_month = cur_month;
-            this.selected_month_after_click = this.selected_month;
+            else
+                break;
 
-            this.current_year = today.getFullYear().toString();
-            this.selected_year = today.getFullYear().toString();
-            this.selected_year_after_click = this.selected_year;
-            //month_id = today.getMonth() + 1
-            /*
-            axios.get('http://localhost:8000/api/averages/month=' + month_id).then(response => {
-                        for (var i = 0; i < response.data.length; i++) 
-                            this.normal_avg += parseFloat(response.data[i]);
-                        
-                        this.normal_avg /= response.data.length
-                        //alert(this.normal_avg)
-  
-                        axios.get('http://localhost:8000/api/precip').then(response => {
-                        
-                        this.normal_precip = parseInt(response.data[month_id - 1])
-                        */
-            /*   
-           }).catch(function (error) {
-               console.log(error)
-           })
-           */
-            axios.get('http://localhost:8000/api/extrema/month=' + (today.getMonth() + 1)).then(response => {
-                this.extrema = response.data;
-            }).catch(function (error) {
-                console.log(error)
-            })
-            this.showContent = true;
+        }
+        if (i > 0)
+            this.avg /= i;
+        this.avg = parseFloat(this.avg.toFixed(1));
+        this.precip = parseFloat(this.precip.toFixed(1))
+        var today = new Date();
+        cur_month = (today.getMonth() + 1).toString();
+        switch (cur_month) {
+            case '1':
+                cur_month = "Январь";
+                break;
+            case '2':
+                cur_month = "Февраль";
+                break;
+            case '3':
+                cur_month = "Март";
+                break;
+            case '4':
+                cur_month = "Апрель";
+                break;
+            case '5':
+                cur_month = "Май";
+                break;
+            case '6':
+                cur_month = "Июнь";
+                break;
+            case '7':
+                cur_month = "Июль";
+                break;
+            case '8':
+                cur_month = "Август";
+                break;
+            case '9':
+                cur_month = "Сентябрь";
+                break;
+            case '10':
+                cur_month = "Октябрь";
+                break;
+            case '11':
+                cur_month = "Ноябрь";
+                break;
+            case '12':
+                cur_month = "Декабрь";
+                break;
+        }
+        this.current_month = cur_month;
+        this.selected_month = cur_month;
+        this.selected_month_after_click = this.selected_month;
+
+        this.current_year = today.getFullYear().toString();
+        this.selected_year = today.getFullYear().toString();
+        this.selected_year_after_click = this.selected_year;
+        //month_id = today.getMonth() + 1
+        /*
+        axios.get('http://localhost:8000/api/averages/month=' + month_id).then(response => {
+                    for (var i = 0; i < response.data.length; i++) 
+                        this.normal_avg += parseFloat(response.data[i]);
+                    
+                    this.normal_avg /= response.data.length
+                    //alert(this.normal_avg)
+
+                    axios.get('http://localhost:8000/api/precip').then(response => {
+                    
+                    this.normal_precip = parseInt(response.data[month_id - 1])
+                    */
+        /*   
+       }).catch(function (error) {
+           console.log(error)
+       })
+       */
+        axios.get('http://localhost:8000/api/extrema/month=' + (today.getMonth() + 1)).then(response => {
+            this.extrema = response.data;
         }).catch(function (error) {
-            this.showContent = true;
             console.log(error)
         })
+        this.showContent = true;
+    }).catch(function (error) {
+        this.showContent = true;
+        console.log(error)
+    })
+        
 
 
 

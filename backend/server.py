@@ -117,13 +117,15 @@ def update_archive(month=date.today().month, year=date.today().year):
         for i in range(lastyearparsed, date.today().year + 1):
             if i == lastyearparsed:
                 for j in range(lastmonthparsed, 13):
-                    dictdata[i][j] = get_from_pogoda_i_klimat(j, i)
+                    dictdata[str(i)][str(j)] = get_from_pogoda_i_klimat(j, i)
             elif i < date.today().year:
+                dictdata[str(i)] = {}
                 for j in range(1, 13):
-                    dictdata[i][j] = get_from_pogoda_i_klimat(j, i)
+                    dictdata[str(i)][str(j)] = get_from_pogoda_i_klimat(j, i)
             else:
+                dictdata[str(i)] = {}
                 for j in range(1, date.today().month + 1):
-                    dictdata[i][j] = get_from_pogoda_i_klimat(j, i)
+                    dictdata[str(i)][str(j)] = get_from_pogoda_i_klimat(j, i)
         with open('./backend/json/weather_archive.json', 'w+') as archive_file:
             json.dump(dictdata, archive_file, indent=4)
     elif date.today().month > lastmonthparsed and date.today().day > 1:

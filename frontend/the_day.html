@@ -94,9 +94,9 @@
                         </b-tab-item>
                         <b-tab-item :label="numbers()[4]">
                             В этот день в <strong>{{current_year - parseFloat(numbers()[4])}}</strong> было <br>
-                            <strong>от <span :class="parseFloat(historicals_of_the_day.min_1) < parseFloat(current_temp) ? 'has-text-link' : 'has-text-danger'">{{
+                            <strong>от <span :class="parseFloat(historicals_of_the_day.min_5) < parseFloat(current_temp) ? 'has-text-link' : 'has-text-danger'">{{
                                     historicals_of_the_day.min_5 + '°' }}</span>
-                                до <span :class="parseFloat(historicals_of_the_day.max_1) < parseFloat(current_temp) ? 'has-text-link' : 'has-text-danger'">{{
+                                до <span :class="parseFloat(historicals_of_the_day.max_5) < parseFloat(current_temp) ? 'has-text-link' : 'has-text-danger'">{{
                                     historicals_of_the_day.max_5 + '°' }}</span></strong>
                         </b-tab-item>
                     </b-tabs>

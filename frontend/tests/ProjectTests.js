@@ -149,7 +149,7 @@ describe('After mounting another page, "the_day",', function() {
     });
     it('2. the current date should be defined and reactive', function() {
         vm_theday.current_date();
-        expect(vm_theday.current_date().getFullYear()).toEqual(2018);
+        expect(vm_theday.current_date().getFullYear()).toEqual(2019);
     });
     it('3. if the date is February 29th of a leap year, the different set of "years ago" is used', function() {
         jasmine.clock().install();
@@ -186,7 +186,7 @@ describe('After mounting another page, "the_day",', function() {
             myresult = vm_theday.custom_date_parse('01.01.2019')
             expect(myresult).not.toEqual(null);
         })
-        it('return a normal current date with original format', () => {
+        it('return a normal current date with the default formatting pattern', () => {
             myresult = vm_theday.custom_date_parse('1/1/2019')
             expect(myresult).not.toEqual(null);
         })

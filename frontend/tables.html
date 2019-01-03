@@ -229,7 +229,7 @@
                 <div class="column is-3">
 
                     <b-field>
-                        <b-select v-model="selected_month" :placeholder="current_month" size="is-large">
+                        <b-select v-model="selected_month" :placeholder="current_month" size="is-large" expanded>
                             <option v-for="month in listOfMonths()" :key="month.id">
                                 {{ month.name }}
                             </option>

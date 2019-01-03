@@ -17,7 +17,10 @@ var vm_tables = new Vue({
                 return [...Array(curyear - 1881 + 1).keys()].map(i => i + 1881).reverse();
             },
             listOfMonths: function () {
-                return [
+                var today = new Date();
+                var curmonth = today.getMonth() + 1;
+                var wholelist = 
+                [
                     { id: 1, name: 'Январь' },
                     { id: 2, name: 'Февраль' },
                     { id: 3, name: 'Март' },
@@ -30,7 +33,10 @@ var vm_tables = new Vue({
                     { id: 10, name: 'Октябрь' },
                     { id: 11, name: 'Ноябрь' },
                     { id: 12, name: 'Декабрь' },
-                ]
+                ];
+               if (this.selected_year == this.current_year)
+                    wholelist.splice(curmonth, 12 - curmonth);
+               return wholelist
 
             },
             selected_month: {},
@@ -148,7 +154,7 @@ var vm_tables = new Vue({
             })
             setTimeout(() => {
                 this.showContent = true
-            }, 425)
+            }, 325)
         }).catch(function (error) {
             this.showContent = true;
             console.log(error)
