@@ -1,4 +1,5 @@
 import falcon
+import os
 from bs4 import BeautifulSoup
 from wsgiref import simple_server  
 import urllib
@@ -112,6 +113,7 @@ def update_archive(month=date.today().month, year=date.today().year):
     lastmonthparsed = int(list(dictdata[str(lastyearparsed)])[-1])
     #print(lastyearparsed)
     #print(lastmonthparsed)
+    #print(type(month))
     if date.today().year > lastyearparsed:
         
         for i in range(lastyearparsed, date.today().year + 1):
@@ -128,13 +130,16 @@ def update_archive(month=date.today().month, year=date.today().year):
                     dictdata[str(i)][str(j)] = get_from_pogoda_i_klimat(j, i)
         with open('./backend/json/weather_archive.json', 'w+') as archive_file:
             json.dump(dictdata, archive_file, indent=4)
-    elif date.today().month > lastmonthparsed and date.today().day > 1:
-        for j in range(lastmonthparsed, date.today().month + 1):
-            dictdata[str(lastyearparsed)][j] = get_from_pogoda_i_klimat(j, lastyearparsed) 
+    elif date.today().month > lastmonthparsed:
+        for j in range(lastmonthparsed, date.today().month):
+            dictdata[str(lastyearparsed)][str(j)] = get_from_pogoda_i_klimat(j, lastyearparsed)
+        if date.today().day > 1:
+            dictdata[str(lastyearparsed)][str(date.today().month)] = get_from_pogoda_i_klimat(date.today().month, lastyearparsed) 
         with open('./backend/json/weather_archive.json', 'w+') as archive_file:
             json.dump(dictdata, archive_file, indent=4)
-    elif month == date.today().month and year == date.today().year:
-        dictdata[str(lastyearparsed)][str(lastmonthparsed)] = get_from_pogoda_i_klimat(lastmonthparsed, lastyearparsed)
+    elif date.today().month <= lastmonthparsed:
+        if month == date.today().month and year == date.today().year:
+            dictdata[str(year)][str(month)] = get_from_pogoda_i_klimat(month, year)
     return dictdata
 
 def parse_averages():
@@ -176,7 +181,8 @@ def parse_averages():
 
 def manual_get_extrema():
     month_headers = [str(i) for i in range(1, 13)]
-    inner_headers = ["most_warm", "most_warm_year", "most_cold", "most_cold_year", "most_dry", "most_dry_year", "most_wet", "most_wet_year"]
+    inner_headers = (["most_warm", "most_warm_year", "most_cold", "most_cold_year", 
+                      "most_dry", "most_dry_year", "most_wet", "most_wet_year"])
     month_data = []
     month_data.append(["-0.3", "1925", "-21.4", "1814", "2", "1838", "82", "2011"])
     month_data.append(["1.7", "1990", "-19.5", "1799", "3", "1886", "92", "1990"])
@@ -206,7 +212,7 @@ def get_extrema_by_month(month):
 def get_averages_by_month(month):
     with open('./backend/json/averages.json', 'r+') as jsonfile:
         dictdata = json.load(jsonfile)
-    return dictdata[str(month)]
+    return dictdata[month]
 
 def get_current_weather():
     response = urllib.request.urlopen('https://www.gismeteo.ru/weather-sankt-peterburg-4079/now')
@@ -239,17 +245,19 @@ class ThingsResource(object):
                         '    ~ Immanuel Kant\n\n')
 
 class WeatherArchive(object):
-    def on_get(self, req, resp, month=date.today().month, year=date.today().year):
-        dictdata = update_archive(month, year)
+    def on_get(self, req, resp, month=str(date.today().month), year=str(date.today().year)):
+        dictdata = update_archive(int(month), int(year))
         #print(get_averages_from_month(month))
-        for i in range(len(dictdata[str(year)][str(month)])):
-            if dictdata[str(year)][str(month)][i]['avg'] != '':
-                delta = float(dictdata[str(year)][str(month)][i]['avg']) - float(get_averages_by_month(month)[i])
-                dictdata[str(year)][str(month)][i]['delta'] = '{:.1f}'.format(delta)
+        for i in range(len(dictdata[year][month])):
+            if dictdata[year][month][i]['avg'] != '':
+                delta = (float(dictdata[year][month][i]['avg']) - 
+                        float(get_averages_by_month(month)[i]))
+                dictdata[year][month][i]['delta'] = '{:.1f}'.format(delta)
                 if delta > 0:
-                    dictdata[str(year)][str(month)][i]['delta'] = '+' + dictdata[str(year)][str(month)][i]['delta']
+                    dictdata[year][month][i]['delta'] = ('+' + 
+                                                    dictdata[year][month][i]['delta'])
             
-        result = dictdata[str(year)][str(month)]
+        result = dictdata[year][month]
         #print(result)
         resp.body = json.dumps(result)
 
@@ -273,7 +281,7 @@ class ParseArchive(object):
 
 
 class AveragesArchive(object):
-    def on_get(self, req, resp, month=date.today().month):
+    def on_get(self, req, resp, month=str(date.today().month)):
         dictdata = get_averages_by_month(month)
         resp.body = json.dumps(dictdata)
 
@@ -296,7 +304,7 @@ class ThisDayArchive(object):
     def on_get(self, req, resp, day=date.today().day, month=date.today().month, year=date.today().year):
         datalist = []
         current_record = update_archive(month, year-1)
-        if day != 29 and month != 2:
+        if day != 29 or month != 2:
             if len(current_record[str(year-1)][str(month)]) > 1:
                 datalist.append(current_record[str(year-1)][str(month)][day-1]['min'])
                 datalist.append(current_record[str(year-1)][str(month)][day-1]['max'])
@@ -358,7 +366,8 @@ class ThisDayArchive(object):
             else:
                 datalist.append('')
                 datalist.append('')
-        headers = ["min_1", "max_1", "min_2", "max_2", "min_3", "max_3", "min_4", "max_4", "min_5", "max_5"]
+        headers = (["min_1", "max_1", "min_2", "max_2", "min_3", "max_3", 
+                   "min_4", "max_4", "min_5", "max_5"])
         datalist = dict(zip(headers, datalist))
         resp.body = json.dumps(datalist)
         
@@ -382,5 +391,6 @@ app.add_route('/api/precip', PrecipitationArchive())
 app.add_route('/api/today_weather', CurrentWeather())
 app.add_route('/api/this_day_history', ThisDayArchive())
 if __name__ == '__main__':
+    os.system('start "chrome" "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --allow-file-access-from-files --disable-web-security --user-data-dir --disable-features=CrossSiteDocumentBlockingIfIsolating')
     httpd = simple_server.make_server('localhost', 8000, app)
     httpd.serve_forever()
