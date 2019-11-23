@@ -2,7 +2,7 @@ import falcon
 import os
 from bs4 import BeautifulSoup
 from wsgiref import simple_server  
-import urllib
+import urllib.request
 from datetime import date
 import json
 import re
@@ -54,21 +54,22 @@ def get_from_pogoda_i_klimat(month=11, year=2018):
     html = response.read()
     #print(html)
     parsed_html = BeautifulSoup(html, features="html.parser")
+    #print(parsed_html)
     info_list = []
-    all_values = parsed_html.body.find_all('td', attrs={'blue1', 'green', 'red1', 'blue3'})
-    #print(len(all_values))
-    for i in range((len(all_values))//5):
+    all_values = parsed_html.body.find_all('td')
+    #print(all_values)
+    for i in range((len(all_values))//6 - 1):
         datalist = []
         if month < 10:
             datalist.append(f'{i+1}.0{month}')
         else:
             datalist.append(f'{i+1}.{month}')
-        for j in range(5):
+        for j in range(6):
             
-            if j != 3:
+            if j != 0 and j != 4:
                 #print(3+i*5+j)
-                if all_values[3+i*5+j].contents != []:
-                    datalist.append(all_values[3+i*5+j].contents[0])
+                if all_values[7+i*6+j].contents != []:
+                    datalist.append(all_values[7+i*6+j].contents[0])
                 else:
                     datalist.append('')
         datatuple = tuple(datalist)
@@ -108,15 +109,16 @@ def parse_archive(first_year=1881, last_year=date.today().year + 1):
 def update_archive(month=date.today().month, year=date.today().year):
     with open('./backend/json/weather_archive.json', 'r+') as jsonfile:
         dictdata = json.load(jsonfile)
-    
     lastyearparsed = int(list(dictdata)[-1])
     lastmonthparsed = int(list(dictdata[str(lastyearparsed)])[-1])
+    #lastmonthparsed = 5
     #print(lastyearparsed)
     #print(lastmonthparsed)
     #print(type(month))
     if date.today().year > lastyearparsed:
-        
+        #print('kkkkk')
         for i in range(lastyearparsed, date.today().year + 1):
+            #print(i)
             if i == lastyearparsed:
                 for j in range(lastmonthparsed, 13):
                     dictdata[str(i)][str(j)] = get_from_pogoda_i_klimat(j, i)
